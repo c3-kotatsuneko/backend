@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/K-Kizuku/kotatuneko-backend/pkg/errors"
+	"github.com/c3-kotatsuneko/backend/pkg/errors"
 )
 
 type AppHandler func(http.ResponseWriter, *http.Request) error

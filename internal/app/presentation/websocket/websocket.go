@@ -4,9 +4,9 @@ import (
 	"context"
 	"net/http"
 
-	appService "github.com/K-Kizuku/kotatuneko-backend/internal/app/application/service"
-	"github.com/K-Kizuku/kotatuneko-backend/internal/app/presentation/switcher"
-	"github.com/K-Kizuku/kotatuneko-backend/internal/domain/service"
+	appService "github.com/c3-kotatsuneko/backend/internal/app/application/service"
+	"github.com/c3-kotatsuneko/backend/internal/app/presentation/switcher"
+	"github.com/c3-kotatsuneko/backend/internal/domain/service"
 	"github.com/gorilla/websocket"
 )
 

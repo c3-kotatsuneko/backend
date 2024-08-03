@@ -4,9 +4,9 @@ import (
 	"context"
 	"sync"
 
-	"github.com/K-Kizuku/kotatuneko-backend/internal/domain/entity"
-	"github.com/K-Kizuku/kotatuneko-backend/internal/domain/repository"
-	domainService "github.com/K-Kizuku/kotatuneko-backend/internal/domain/service"
+	"github.com/c3-kotatsuneko/backend/internal/domain/entity"
+	"github.com/c3-kotatsuneko/backend/internal/domain/repository"
+	domainService "github.com/c3-kotatsuneko/backend/internal/domain/service"
 )
 
 type Cat struct {

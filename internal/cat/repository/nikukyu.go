@@ -3,7 +3,7 @@ package repository
 import (
 	"sync"
 
-	"github.com/K-Kizuku/kotatuneko-backend/internal/domain/entity"
+	"github.com/c3-kotatsuneko/backend/internal/domain/entity"
 )
 
 type INikukyuRepository interface {

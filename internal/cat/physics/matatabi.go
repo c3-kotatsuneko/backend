@@ -3,8 +3,8 @@ package physics
 import (
 	"math"
 
-	"github.com/K-Kizuku/kotatuneko-backend/internal/cat/constants"
-	"github.com/K-Kizuku/kotatuneko-backend/internal/domain/entity"
+	"github.com/c3-kotatsuneko/backend/internal/cat/constants"
+	"github.com/c3-kotatsuneko/backend/internal/domain/entity"
 )
 
 // 力による速度の更新

@@ -8,7 +8,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/K-Kizuku/kotatuneko-backend/internal/domain/service"
+	"github.com/c3-kotatsuneko/backend/internal/domain/service"
 	"github.com/gorilla/websocket"
 )
 

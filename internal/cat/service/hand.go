@@ -1,10 +1,10 @@
 package service
 
 import (
-	"github.com/K-Kizuku/kotatuneko-backend/internal/cat/constants"
-	"github.com/K-Kizuku/kotatuneko-backend/internal/cat/physics"
-	"github.com/K-Kizuku/kotatuneko-backend/internal/cat/repository"
-	"github.com/K-Kizuku/kotatuneko-backend/internal/domain/entity"
+	"github.com/c3-kotatsuneko/backend/internal/cat/constants"
+	"github.com/c3-kotatsuneko/backend/internal/cat/physics"
+	"github.com/c3-kotatsuneko/backend/internal/cat/repository"
+	"github.com/c3-kotatsuneko/backend/internal/domain/entity"
 )
 
 type IHandService interface {

@@ -3,9 +3,9 @@ package handler
 import (
 	"net/http"
 
-	"github.com/K-Kizuku/kotatuneko-backend/internal/app/application/service"
-	"github.com/K-Kizuku/kotatuneko-backend/internal/app/presentation/switcher"
-	"github.com/K-Kizuku/kotatuneko-backend/internal/app/presentation/websocket"
+	"github.com/c3-kotatsuneko/backend/internal/app/application/service"
+	"github.com/c3-kotatsuneko/backend/internal/app/presentation/switcher"
+	"github.com/c3-kotatsuneko/backend/internal/app/presentation/websocket"
 )
 
 type PhysicsHandler struct {

@@ -1,7 +1,7 @@
 package physics
 
 import (
-	"github.com/K-Kizuku/kotatuneko-backend/internal/domain/entity"
+	"github.com/c3-kotatsuneko/backend/internal/domain/entity"
 )
 
 // 速度の計算 v = (x2 - x1) / dt

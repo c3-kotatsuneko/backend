@@ -3,9 +3,9 @@ package cat
 import (
 	"context"
 
-	"github.com/K-Kizuku/kotatuneko-backend/internal/cat/service"
-	"github.com/K-Kizuku/kotatuneko-backend/internal/domain/entity"
-	domainService "github.com/K-Kizuku/kotatuneko-backend/internal/domain/service"
+	"github.com/c3-kotatsuneko/backend/internal/cat/service"
+	"github.com/c3-kotatsuneko/backend/internal/domain/entity"
+	domainService "github.com/c3-kotatsuneko/backend/internal/domain/service"
 )
 
 type Cat struct {

@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/K-Kizuku/kotatuneko-backend/internal/domain/entity"
-	"github.com/K-Kizuku/kotatuneko-backend/internal/domain/repository"
-	"github.com/K-Kizuku/kotatuneko-backend/internal/domain/service"
 	"github.com/K-Kizuku/kotatuneko-protobuf/gen/game/resources"
 	"github.com/K-Kizuku/kotatuneko-protobuf/gen/game/rpc"
+	"github.com/c3-kotatsuneko/backend/internal/domain/entity"
+	"github.com/c3-kotatsuneko/backend/internal/domain/repository"
+	"github.com/c3-kotatsuneko/backend/internal/domain/service"
 	"google.golang.org/protobuf/proto"
 )
 

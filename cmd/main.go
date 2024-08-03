@@ -10,11 +10,11 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/K-Kizuku/kotatuneko-backend/internal/di"
-	"github.com/K-Kizuku/kotatuneko-backend/pkg/config"
-	"github.com/K-Kizuku/kotatuneko-backend/pkg/handler"
-	"github.com/K-Kizuku/kotatuneko-backend/pkg/log"
-	"github.com/K-Kizuku/kotatuneko-backend/pkg/middleware"
+	"github.com/c3-kotatsuneko/backend/internal/di"
+	"github.com/c3-kotatsuneko/backend/pkg/config"
+	"github.com/c3-kotatsuneko/backend/pkg/handler"
+	"github.com/c3-kotatsuneko/backend/pkg/log"
+	"github.com/c3-kotatsuneko/backend/pkg/middleware"
 	"github.com/rs/cors"
 )
 

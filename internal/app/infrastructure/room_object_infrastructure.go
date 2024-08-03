@@ -3,9 +3,9 @@ package infrastructure
 import (
 	"context"
 
-	"github.com/K-Kizuku/kotatuneko-backend/internal/domain/entity"
-	"github.com/K-Kizuku/kotatuneko-backend/internal/domain/repository"
-	"github.com/K-Kizuku/kotatuneko-backend/pkg/cache"
+	"github.com/c3-kotatsuneko/backend/internal/domain/entity"
+	"github.com/c3-kotatsuneko/backend/internal/domain/repository"
+	"github.com/c3-kotatsuneko/backend/pkg/cache"
 )
 
 type RoomObjectRepository struct {

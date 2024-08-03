@@ -1,7 +1,7 @@
 package presentation
 
 import (
-	"github.com/K-Kizuku/kotatuneko-backend/internal/app/presentation/handler"
+	"github.com/c3-kotatsuneko/backend/internal/app/presentation/handler"
 )
 
 type Root struct {

@@ -1,4 +1,4 @@
-module github.com/K-Kizuku/kotatuneko-backend
+module github.com/c3-kotatsuneko/backend
 
 go 1.23rc1
 

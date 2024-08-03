@@ -7,16 +7,16 @@
 package di
 
 import (
-	service2 "github.com/K-Kizuku/kotatuneko-backend/internal/app/application/service"
-	"github.com/K-Kizuku/kotatuneko-backend/internal/app/infrastructure"
-	"github.com/K-Kizuku/kotatuneko-backend/internal/app/presentation"
-	"github.com/K-Kizuku/kotatuneko-backend/internal/app/presentation/handler"
-	"github.com/K-Kizuku/kotatuneko-backend/internal/app/presentation/switcher"
-	"github.com/K-Kizuku/kotatuneko-backend/internal/app/presentation/websocket"
-	"github.com/K-Kizuku/kotatuneko-backend/internal/cat"
-	"github.com/K-Kizuku/kotatuneko-backend/internal/cat/repository"
-	"github.com/K-Kizuku/kotatuneko-backend/internal/cat/service"
-	"github.com/K-Kizuku/kotatuneko-backend/pkg/cache"
+	service2 "github.com/c3-kotatsuneko/backend/internal/app/application/service"
+	"github.com/c3-kotatsuneko/backend/internal/app/infrastructure"
+	"github.com/c3-kotatsuneko/backend/internal/app/presentation"
+	"github.com/c3-kotatsuneko/backend/internal/app/presentation/handler"
+	"github.com/c3-kotatsuneko/backend/internal/app/presentation/switcher"
+	"github.com/c3-kotatsuneko/backend/internal/app/presentation/websocket"
+	"github.com/c3-kotatsuneko/backend/internal/cat"
+	"github.com/c3-kotatsuneko/backend/internal/cat/repository"
+	"github.com/c3-kotatsuneko/backend/internal/cat/service"
+	"github.com/c3-kotatsuneko/backend/pkg/cache"
 )
 
 // Injectors from wire.go:
