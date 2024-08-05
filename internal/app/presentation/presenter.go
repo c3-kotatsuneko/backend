@@ -6,10 +6,12 @@ import (
 
 type Root struct {
 	PhysicsHandler *handler.PhysicsHandler
+	EventHandler   *handler.EventHandler
 }
 
-func New(physicsHandler *handler.PhysicsHandler) *Root {
+func New(physicsHandler *handler.PhysicsHandler, EventHandler *handler.EventHandler) *Root {
 	return &Root{
 		PhysicsHandler: physicsHandler,
+		EventHandler:   EventHandler,
 	}
 }

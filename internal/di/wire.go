@@ -25,9 +25,12 @@ func InitHandler() *presentation.Root {
 		infrastructure.NewRoomObjectRepository,
 		infrastructure.NewCat,
 		service.NewRoomObjectService,
+		service.NewEventService,
 		switcher.NewPhysicsSwitcher,
+		switcher.NewEventSwitcher,
 		websocket.NewWSHandler,
 		handler.NewPhysicsHandler,
+		handler.NewEventHandler,
 		presentation.New,
 
 		cat.New,

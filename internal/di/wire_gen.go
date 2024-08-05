@@ -34,7 +34,10 @@ func InitHandler() *presentation.Root {
 	iRoomObjectService := service2.NewRoomObjectService(iRoomObjectRepository, iMessageSender, iCatRepository)
 	iwsHandler := websocket.NewWSHandler(iRoomObjectService, iMessageSender)
 	iPhysicsSwitcher := switcher.NewPhysicsSwitcher(iRoomObjectService, iMessageSender)
-	physicsHandler := handler.NewPhysicsHandler(iRoomObjectService, iwsHandler, iPhysicsSwitcher)
-	root := presentation.New(physicsHandler)
+	physicsHandler := handler.NewPhysicsHandler(iwsHandler, iPhysicsSwitcher)
+	iEventService := service2.NewEventService(iMessageSender)
+	iEventSwitcher := switcher.NewEventSwitcher(iEventService, iMessageSender)
+	eventHandler := handler.NewEventHandler(iwsHandler, iEventSwitcher)
+	root := presentation.New(physicsHandler, eventHandler)
 	return root
 }
