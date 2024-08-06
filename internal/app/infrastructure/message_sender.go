@@ -9,6 +9,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/c3-kotatsuneko/backend/internal/domain/service"
+	"github.com/c3-kotatsuneko/protobuf/gen/game/resources"
 	"github.com/gorilla/websocket"
 )
 
@@ -83,6 +84,30 @@ func (s *MsgSender) Send(ctx context.Context, to string, data interface{}) error
 	}
 }
 
+func (s *MsgSender) GetPlayersInRoom(roomID string) ([]*resources.Player, error) {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+	// player取得の処理書きたい
+
+	// player, ok := s.rooms[roomID]
+	// if !ok {
+	// 	return nil, errors.New("room not found")
+	// }
+
+	// sample
+	players := []*resources.Player{
+		{
+			PlayerId: "1",
+			Name:     "admin",
+			Color:    "red",
+			Score:    10,
+			Rank:     5,
+			Time:     1,
+		},
+	}
+	return players, nil
+}
+
 func (s *MsgSender) Broadcast(ctx context.Context, roomID string, data interface{}) error {
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
@@ -103,7 +128,7 @@ func (s *MsgSender) Broadcast(ctx context.Context, roomID string, data interface
 	return nil
 }
 
-func (s *MsgSender) Register(roomID, userID string, conn *websocket.Conn, err chan error) {
+func (s *MsgSender) Register(roomID string, player *resources.Player, conn *websocket.Conn, err chan error) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
@@ -115,11 +140,12 @@ func (s *MsgSender) Register(roomID, userID string, conn *websocket.Conn, err ch
 	}
 	go client.run()
 
-	s.clients[userID] = client
-	s.rooms[roomID] = append(s.rooms[roomID], userID)
+	s.clients[player.PlayerId] = client
+	s.rooms[roomID] = append(s.rooms[roomID], player.PlayerId)
+	// player登録の処理書きたい
 }
 
-func (s *MsgSender) Unregister(userID string) {
+func (s *MsgSender) Unregister(userID, RoomId string) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
@@ -130,4 +156,5 @@ func (s *MsgSender) Unregister(userID string) {
 
 	close(client.cancel)
 	delete(s.clients, userID)
+	// player削除の処理書きたい
 }

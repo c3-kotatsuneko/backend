@@ -30,6 +30,7 @@ func main() {
 	})
 
 	mux.Handle("GET /ws/physics", handler.AppHandler(h.PhysicsHandler.Calculate()))
+	mux.Handle("GET /ws/events", handler.AppHandler(h.EventHandler.ManageEvent()))
 
 	c := cors.AllowAll()
 	handler := middleware.Chain(mux, middleware.Context, c.Handler, middleware.Recover, middleware.Logger)
