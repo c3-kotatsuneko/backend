@@ -41,3 +41,15 @@ wire:
 
 commit:
 	npx git-cz
+
+encode-request:
+	go run tools/binary.go encode request
+
+decode-request:
+	go run tools/binary.go decode request
+
+encode-response:
+	go run tools/binary.go encode response
+
+decode-response:
+	go run tools/binary.go decode response
