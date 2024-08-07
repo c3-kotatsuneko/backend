@@ -31,19 +31,18 @@ func NewEventService(msgSender service.IMessageSender) IEventService {
 }
 
 func (s *EventService) EnterRoom(ctx context.Context, roomID string, player *resources.Player, conn *websocket.Conn) error {
-	fmt.Println("EnterRoom")
 	s.msgSender.Register(roomID, player, conn, nil)
 	p, err := s.msgSender.GetPlayersInRoom(roomID)
 	if err != nil {
 		return err
 	}
-	fmt.Println("players: ", p)
 	r := &rpc.GameStatusResponse{
 		RoomId:  roomID,
 		Event:   resources.Event_EVENT_ENTER_ROOM,
 		Players: p,
 		Time:    -1,
 	}
+	fmt.Println("response: ", r)
 	data, err := proto.Marshal(r)
 	if err != nil {
 		return err

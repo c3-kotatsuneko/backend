@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/c3-kotatsuneko/protobuf/gen/game/resources"
 	"github.com/c3-kotatsuneko/protobuf/gen/game/rpc"
@@ -14,8 +15,8 @@ import (
 // Protobufメッセージをエンコードして16進数文字列に変換する関数
 func encodeRequestToHex() string {
 	player := &resources.Player{
-		PlayerId: "2",
-		Name:     "admin1",
+		PlayerId: "3",
+		Name:     "admin3",
 		Color:    "red",
 		Score:    10,
 		Rank:     5,
@@ -23,9 +24,9 @@ func encodeRequestToHex() string {
 	}
 
 	request := &rpc.GameStatusRequest{
-		RoomId:  "hoge",
+		RoomId:  "huga",
 		Event:   resources.Event_EVENT_ENTER_ROOM,
-		Mode:    resources.Mode_MODE_TIME_ATTACK,
+		Mode:    resources.Mode_MODE_MULTI,
 		Players: player,
 	}
 
@@ -40,21 +41,30 @@ func encodeRequestToHex() string {
 
 // Protobufメッセージをエンコードして16進数文字列に変換する関数
 func encodeResponseToHex() string {
-	player := &resources.Player{
-		PlayerId: "1",
-		Name:     "admin",
-		Color:    "red",
-		Score:    10,
-		Rank:     5,
-		Time:     1,
-	}
-
 	response := &rpc.GameStatusResponse{
-		RoomId:  "hoge",
-		Event:   resources.Event_EVENT_ENTER_ROOM,
-		Players: []*resources.Player{player},
-		Time:    -1,
+		RoomId: "hoge",
+		Event:  resources.Event_EVENT_ENTER_ROOM,
+		Players: []*resources.Player{
+			{
+				PlayerId: "1",
+				Name:     "admin1",
+				Color:    "red",
+				Score:    10,
+				Rank:     5,
+				Time:     1,
+			},
+			{
+				PlayerId: "2",
+				Name:     "admin2",
+				Color:    "red",
+				Score:    10,
+				Rank:     5,
+				Time:     1,
+			},
+		},
+		Time: -1,
 	}
+	fmt.Printf("%+v\n", response)
 
 	data, err := proto.Marshal(response)
 	if err != nil {
@@ -68,6 +78,7 @@ func encodeResponseToHex() string {
 // 16進数文字列をデコードしてProtobufメッセージに変換する関数
 func decodeRequestFromHex() *rpc.GameStatusRequest {
 	hexData := "0a04686f67651001180122150a0131120561646d696e1a03726564200a28053001"
+	hexData = strings.ReplaceAll(hexData, " ", "")
 	binaryData, err := hex.DecodeString(hexData)
 	if err != nil {
 		log.Fatal("decoding hex error: ", err)
@@ -83,7 +94,8 @@ func decodeRequestFromHex() *rpc.GameStatusRequest {
 
 // 16進数文字列をデコードしてProtobufメッセージに変換する関数
 func decodeResponseFromHex() *rpc.GameStatusResponse {
-	hexData := "0A04686F676510011A150A0131120561646D696E1A03726564200A2805300120FFFFFFFFFFFFFFFFFF01"
+	hexData := "0a04686f676510011a160a0131120661646d696e311a03726564200a280530011a160a0132120661646d696e321a03726564200a2805300120ffffffffffffffffff01"
+	hexData = strings.ReplaceAll(hexData, " ", "")
 	binaryData, err := hex.DecodeString(hexData)
 	if err != nil {
 		log.Fatal("decoding hex error: ", err)

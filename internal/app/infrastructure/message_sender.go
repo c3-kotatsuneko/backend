@@ -93,13 +93,12 @@ func (s *MsgSender) GetPlayersInRoom(roomID string) ([]*resources.Player, error)
 	if !ok {
 		return nil, errors.New("room not found")
 	}
-	var players []*resources.Player
+	players := make([]*resources.Player, 0, len(playerIDs))
 	for _, playerID := range playerIDs {
 		if player, ok := s.players[playerID]; ok {
 			players = append(players, player)
 		}
 	}
-	fmt.Println("players: ", players)
 	return players, nil
 }
 
