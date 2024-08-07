@@ -13,4 +13,5 @@ type IMessageSender interface {
 	Register(roomID string, player *resources.Player, conn *websocket.Conn, err chan error)
 	Unregister(userID, RoomId string)
 	GetPlayersInRoom(roomID string) ([]*resources.Player, error)
+	UpdatePlayer(player *resources.Player) error
 }

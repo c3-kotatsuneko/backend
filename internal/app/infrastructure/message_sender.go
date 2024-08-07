@@ -55,8 +55,9 @@ func (c *Client) run() {
 
 type MsgSender struct {
 	mutex   *sync.RWMutex
-	clients map[string]*Client  // userID -> client
-	rooms   map[string][]string // roomID -> userIDs
+	clients map[string]*Client           // userID -> client
+	rooms   map[string][]string          // roomID -> userIDs
+	players map[string]*resources.Player // playerID -> Player
 }
 
 func NewMsgSender() service.IMessageSender {
@@ -64,6 +65,7 @@ func NewMsgSender() service.IMessageSender {
 		mutex:   new(sync.RWMutex),
 		clients: make(map[string]*Client),
 		rooms:   make(map[string][]string),
+		players: make(map[string]*resources.Player),
 	}
 }
 
@@ -87,24 +89,17 @@ func (s *MsgSender) Send(ctx context.Context, to string, data interface{}) error
 func (s *MsgSender) GetPlayersInRoom(roomID string) ([]*resources.Player, error) {
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
-	// player取得の処理書きたい
-
-	// player, ok := s.rooms[roomID]
-	// if !ok {
-	// 	return nil, errors.New("room not found")
-	// }
-
-	// sample
-	players := []*resources.Player{
-		{
-			PlayerId: "1",
-			Name:     "admin",
-			Color:    "red",
-			Score:    10,
-			Rank:     5,
-			Time:     1,
-		},
+	playerIDs, ok := s.rooms[roomID]
+	if !ok {
+		return nil, errors.New("room not found")
 	}
+	var players []*resources.Player
+	for _, playerID := range playerIDs {
+		if player, ok := s.players[playerID]; ok {
+			players = append(players, player)
+		}
+	}
+	fmt.Println("players: ", players)
 	return players, nil
 }
 
@@ -142,10 +137,10 @@ func (s *MsgSender) Register(roomID string, player *resources.Player, conn *webs
 
 	s.clients[player.PlayerId] = client
 	s.rooms[roomID] = append(s.rooms[roomID], player.PlayerId)
-	// player登録の処理書きたい
+	s.players[player.PlayerId] = player
 }
 
-func (s *MsgSender) Unregister(userID, RoomId string) {
+func (s *MsgSender) Unregister(userID, roomID string) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
@@ -156,5 +151,25 @@ func (s *MsgSender) Unregister(userID, RoomId string) {
 
 	close(client.cancel)
 	delete(s.clients, userID)
-	// player削除の処理書きたい
+	delete(s.players, userID)
+
+	userIDs := s.rooms[roomID]
+	for i, id := range userIDs {
+		if id == userID {
+			s.rooms[roomID] = append(userIDs[:i], userIDs[i+1:]...)
+			break
+		}
+	}
+}
+
+func (s *MsgSender) UpdatePlayer(player *resources.Player) error {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
+	if _, ok := s.players[player.PlayerId]; !ok {
+		return errors.New("player not found")
+	}
+
+	s.players[player.PlayerId] = player
+	return nil
 }

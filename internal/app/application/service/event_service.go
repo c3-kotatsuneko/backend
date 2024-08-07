@@ -34,7 +34,6 @@ func (s *EventService) EnterRoom(ctx context.Context, roomID string, player *res
 	fmt.Println("EnterRoom")
 	s.msgSender.Register(roomID, player, conn, nil)
 	p, err := s.msgSender.GetPlayersInRoom(roomID)
-	fmt.Println("players: ", p)
 	if err != nil {
 		return err
 	}
