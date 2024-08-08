@@ -9,6 +9,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/c3-kotatsuneko/backend/internal/domain/service"
+	"github.com/c3-kotatsuneko/protobuf/gen/game/resources"
 	"github.com/gorilla/websocket"
 )
 
@@ -54,8 +55,9 @@ func (c *Client) run() {
 
 type MsgSender struct {
 	mutex   *sync.RWMutex
-	clients map[string]*Client  // userID -> client
-	rooms   map[string][]string // roomID -> userIDs
+	clients map[string]*Client           // userID -> client
+	rooms   map[string][]string          // roomID -> userIDs
+	players map[string]*resources.Player // playerID -> Player
 }
 
 func NewMsgSender() service.IMessageSender {
@@ -63,6 +65,7 @@ func NewMsgSender() service.IMessageSender {
 		mutex:   new(sync.RWMutex),
 		clients: make(map[string]*Client),
 		rooms:   make(map[string][]string),
+		players: make(map[string]*resources.Player),
 	}
 }
 
@@ -81,6 +84,22 @@ func (s *MsgSender) Send(ctx context.Context, to string, data interface{}) error
 	case <-time.After(writeWait):
 		return errors.New("websocket write timeout")
 	}
+}
+
+func (s *MsgSender) GetPlayersInRoom(roomID string) ([]*resources.Player, error) {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+	playerIDs, ok := s.rooms[roomID]
+	if !ok {
+		return nil, errors.New("room not found")
+	}
+	players := make([]*resources.Player, 0, len(playerIDs))
+	for _, playerID := range playerIDs {
+		if player, ok := s.players[playerID]; ok {
+			players = append(players, player)
+		}
+	}
+	return players, nil
 }
 
 func (s *MsgSender) Broadcast(ctx context.Context, roomID string, data interface{}) error {
@@ -103,7 +122,7 @@ func (s *MsgSender) Broadcast(ctx context.Context, roomID string, data interface
 	return nil
 }
 
-func (s *MsgSender) Register(roomID, userID string, conn *websocket.Conn, err chan error) {
+func (s *MsgSender) Register(roomID string, player *resources.Player, conn *websocket.Conn, err chan error) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
@@ -115,11 +134,12 @@ func (s *MsgSender) Register(roomID, userID string, conn *websocket.Conn, err ch
 	}
 	go client.run()
 
-	s.clients[userID] = client
-	s.rooms[roomID] = append(s.rooms[roomID], userID)
+	s.clients[player.PlayerId] = client
+	s.rooms[roomID] = append(s.rooms[roomID], player.PlayerId)
+	s.players[player.PlayerId] = player
 }
 
-func (s *MsgSender) Unregister(userID string) {
+func (s *MsgSender) Unregister(userID, roomID string) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
@@ -130,4 +150,25 @@ func (s *MsgSender) Unregister(userID string) {
 
 	close(client.cancel)
 	delete(s.clients, userID)
+	delete(s.players, userID)
+
+	userIDs := s.rooms[roomID]
+	for i, id := range userIDs {
+		if id == userID {
+			s.rooms[roomID] = append(userIDs[:i], userIDs[i+1:]...)
+			break
+		}
+	}
+}
+
+func (s *MsgSender) UpdatePlayer(player *resources.Player) error {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
+	if _, ok := s.players[player.PlayerId]; !ok {
+		return errors.New("player not found")
+	}
+
+	s.players[player.PlayerId] = player
+	return nil
 }

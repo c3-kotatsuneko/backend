@@ -5,11 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/K-Kizuku/kotatuneko-protobuf/gen/game/resources"
-	"github.com/K-Kizuku/kotatuneko-protobuf/gen/game/rpc"
 	"github.com/c3-kotatsuneko/backend/internal/app/application/service"
 	"github.com/c3-kotatsuneko/backend/internal/domain/entity"
 	domainService "github.com/c3-kotatsuneko/backend/internal/domain/service"
+	"github.com/c3-kotatsuneko/protobuf/gen/game/resources"
+	"github.com/c3-kotatsuneko/protobuf/gen/game/rpc"
 	"github.com/gorilla/websocket"
 	"google.golang.org/protobuf/proto"
 )

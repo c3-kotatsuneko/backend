@@ -3,6 +3,7 @@ package switcher
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/c3-kotatsuneko/backend/internal/app/application/service"
@@ -48,23 +49,26 @@ func (s *EventSwitcher) Switch(ctx context.Context, conn *websocket.Conn) error 
 				fmt.Println("err: ", err)
 				return err
 			}
-			switch msg.Event {
-			case resources.Event_EVENT_TIME_ATTACK:
-				if err := s.eventServise.TimeAttack(ctx, msg.RoomId, msg.RoomId); err != nil {
-					return err
+			switch msg.Mode {
+			case resources.Mode_MODE_TIME_ATTACK:
+			case resources.Mode_MODE_MULTI:
+				switch msg.Event {
+				case resources.Event_EVENT_ENTER_ROOM:
+					if err := s.eventServise.EnterRoom(ctx, msg.RoomId, msg.Players, conn); err != nil {
+						return err
+					}
+				default:
+					fmt.Println("unhandling event")
+					return errors.New("unhandling event")
 				}
-			case resources.Event_EVENT_MULTI:
-				if err := s.eventServise.MultiPlay(ctx, msg.RoomId, msg.RoomId); err != nil {
-					return err
-				}
-			case resources.Event_EVENT_TRAINING:
-				if err := s.eventServise.Training(ctx, msg.RoomId, msg.RoomId); err != nil {
-					return err
-				}
+			case resources.Mode_MODE_TRAINING:
+			case resources.Mode_MODE_UNKNOWN:
+				return errors.New("unknown mode")
 			default:
-				return nil
+				return errors.New("unhandling mode")
 			}
 		default:
+			fmt.Println("unhandling message type")
 			return nil
 		}
 
