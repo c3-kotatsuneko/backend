@@ -1,5 +1,3 @@
-github.com/K-Kizuku/kotatuneko-protobuf v0.1.14 h1:H8rjj7RZzIyjJuGYljCQx6Sc0JxizCBRjrU0NMUhk34=
-github.com/K-Kizuku/kotatuneko-protobuf v0.1.14/go.mod h1:ZBxjHcSWcZd3cfVLEPArmWfVVJtGfBnuAjbj0bKSrwY=
 github.com/c3-kotatsuneko/protobuf v0.1.20 h1:W/Emv5wVjNEFqJk27f3REK/b/lb/vZF+DL69+Oo1mCo=
 github.com/c3-kotatsuneko/protobuf v0.1.20/go.mod h1:aRneFtvclNvnlRPeHzjper8hWg9t8RbcXgAeJ8hCjMY=
 github.com/cespare/xxhash/v2 v2.1.1 h1:6MnRN8NT7+YBpUIWxHtefFZOKTAPgGjpQSxqLNn0+qY=
