@@ -57,6 +57,16 @@ func (s *EventSwitcher) Switch(ctx context.Context, conn *websocket.Conn) error 
 					if err := s.eventServise.EnterRoom(ctx, msg.RoomId, msg.Players, conn); err != nil {
 						return err
 					}
+				case resources.Event_EVENT_GAME_START:
+					if err := s.eventServise.GameStart(ctx, msg.RoomId); err != nil {
+						return err
+					}
+					if err := s.eventServise.CountDonw(ctx, msg.RoomId); err != nil {
+						return err
+					}
+					if err := s.eventServise.Timer(ctx, msg.RoomId); err != nil {
+						return err
+					}
 				default:
 					fmt.Println("unhandling event")
 					return errors.New("unhandling event")
