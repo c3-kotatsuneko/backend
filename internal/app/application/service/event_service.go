@@ -17,7 +17,7 @@ type IEventService interface {
 	GameStart(ctx context.Context, roomID string) error
 	CountDonw(ctx context.Context, roomID string) error
 	Timer(ctx context.Context, roomID string) error
-	Stats(ctx context.Context, roomID string) error
+	Stats(ctx context.Context, roomID string, player *resources.Player) error
 	Result(ctx context.Context, roomID string) error
 	ExitRoom(ctx context.Context, roomID string) error
 }
@@ -146,8 +146,25 @@ func (s *EventService) Timer(ctx context.Context, roomID string) error {
 	}
 }
 
-func (s *EventService) Stats(ctx context.Context, roomID string) error {
-	panic("unimplemented")
+func (s *EventService) Stats(ctx context.Context, roomID string, player *resources.Player) error {
+	s.msgSender.UpdatePlayer(player)
+	p, err := s.msgSender.GetPlayersInRoom(roomID)
+	if err != nil {
+		return err
+	}
+	r := &rpc.GameStatusResponse{
+		RoomId:  roomID,
+		Event:   resources.Event_EVENT_STATS,
+		Players: p,
+		Time:    -1,
+	}
+	fmt.Println("response: ", r)
+	data, err := proto.Marshal(r)
+	if err != nil {
+		return err
+	}
+	s.msgSender.Broadcast(ctx, roomID, data)
+	return nil
 }
 
 func (s *EventService) Result(ctx context.Context, roomID string) error {

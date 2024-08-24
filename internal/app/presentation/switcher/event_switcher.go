@@ -67,6 +67,10 @@ func (s *EventSwitcher) Switch(ctx context.Context, conn *websocket.Conn) error 
 					if err := s.eventServise.Timer(ctx, msg.RoomId); err != nil {
 						return err
 					}
+				case resources.Event_EVENT_STATS:
+					if err := s.eventServise.Stats(ctx, msg.RoomId, msg.Players); err != nil {
+						return err
+					}
 				default:
 					fmt.Println("unhandling event")
 					return errors.New("unhandling event")
