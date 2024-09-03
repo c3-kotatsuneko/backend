@@ -26,6 +26,11 @@ type EventService struct {
 	msgSender service.IMessageSender
 }
 
+const (
+	RoomStatusWaiting string = "waiting"
+	RoomStatusPlaying string = "playing"
+)
+
 func NewEventService(msgSender service.IMessageSender) IEventService {
 	return &EventService{
 		msgSender: msgSender,
@@ -33,7 +38,13 @@ func NewEventService(msgSender service.IMessageSender) IEventService {
 }
 
 func (s *EventService) EnterRoom(ctx context.Context, roomID string, player *resources.Player, conn *websocket.Conn) error {
+	status, _ := s.msgSender.GetRoomStatus(roomID)
+	if status == RoomStatusPlaying {
+		fmt.Println("room is playing1")
+		return fmt.Errorf("room is playing")
+	}
 	s.msgSender.Register(roomID, player, conn, nil)
+	s.msgSender.SetRoomStatus(roomID, RoomStatusWaiting)
 	p, err := s.msgSender.GetPlayersInRoom(roomID)
 	if err != nil {
 		return err
@@ -55,6 +66,16 @@ func (s *EventService) EnterRoom(ctx context.Context, roomID string, player *res
 }
 
 func (s *EventService) GameStart(ctx context.Context, roomID string) error {
+	status, err := s.msgSender.GetRoomStatus(roomID)
+	fmt.Println("status: ", status)
+	if err != nil {
+		return err
+	}
+	if status == RoomStatusPlaying {
+		fmt.Println("room is playing2")
+		return fmt.Errorf("room is playing")
+	}
+	s.msgSender.SetRoomStatus(roomID, RoomStatusPlaying)
 	p, err := s.msgSender.GetPlayersInRoom(roomID)
 	if err != nil {
 		return err

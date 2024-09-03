@@ -58,6 +58,7 @@ type MsgSender struct {
 	clients map[string]*Client           // userID -> client
 	rooms   map[string][]string          // roomID -> userIDs
 	players map[string]*resources.Player // playerID -> Player
+	status  map[string]string            // roomID -> RoomStatus
 }
 
 func NewMsgSender() service.IMessageSender {
@@ -66,6 +67,7 @@ func NewMsgSender() service.IMessageSender {
 		clients: make(map[string]*Client),
 		rooms:   make(map[string][]string),
 		players: make(map[string]*resources.Player),
+		status:  make(map[string]string),
 	}
 }
 
@@ -171,4 +173,22 @@ func (s *MsgSender) UpdatePlayer(player *resources.Player) error {
 
 	s.players[player.PlayerId] = player
 	return nil
+}
+
+func (s *MsgSender) SetRoomStatus(roomID string, status string) error {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
+	s.status[roomID] = status
+	return nil
+}
+
+func (s *MsgSender) GetRoomStatus(roomID string) (string, error) {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+
+	if _, ok := s.status[roomID]; !ok {
+		return "", errors.New("roomID not found")
+	}
+	return s.status[roomID], nil
 }

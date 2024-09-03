@@ -14,4 +14,6 @@ type IMessageSender interface {
 	Unregister(userID, RoomId string)
 	GetPlayersInRoom(roomID string) ([]*resources.Player, error)
 	UpdatePlayer(player *resources.Player) error
+	SetRoomStatus(roomID string, status string) error
+	GetRoomStatus(roomID string) (status string, err error)
 }
