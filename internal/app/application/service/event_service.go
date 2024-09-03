@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/c3-kotatsuneko/backend/internal/app/constants"
 	"github.com/c3-kotatsuneko/backend/internal/domain/service"
 	"github.com/c3-kotatsuneko/protobuf/gen/game/resources"
 	"github.com/c3-kotatsuneko/protobuf/gen/game/rpc"
@@ -26,11 +27,6 @@ type EventService struct {
 	msgSender service.IMessageSender
 }
 
-const (
-	RoomStatusWaiting string = "waiting"
-	RoomStatusPlaying string = "playing"
-)
-
 func NewEventService(msgSender service.IMessageSender) IEventService {
 	return &EventService{
 		msgSender: msgSender,
@@ -39,12 +35,12 @@ func NewEventService(msgSender service.IMessageSender) IEventService {
 
 func (s *EventService) EnterRoom(ctx context.Context, roomID string, player *resources.Player, conn *websocket.Conn) error {
 	status, _ := s.msgSender.GetRoomStatus(roomID)
-	if status == RoomStatusPlaying {
+	if status == constants.RoomStatusPlaying {
 		fmt.Println("room is playing1")
 		return fmt.Errorf("room is playing")
 	}
 	s.msgSender.Register(roomID, player, conn, nil)
-	s.msgSender.SetRoomStatus(roomID, RoomStatusWaiting)
+	s.msgSender.SetRoomStatus(roomID, constants.RoomStatusWaiting)
 	p, err := s.msgSender.GetPlayersInRoom(roomID)
 	if err != nil {
 		return err
@@ -71,11 +67,11 @@ func (s *EventService) GameStart(ctx context.Context, roomID string) error {
 	if err != nil {
 		return err
 	}
-	if status == RoomStatusPlaying {
+	if status == constants.RoomStatusPlaying {
 		fmt.Println("room is playing2")
 		return fmt.Errorf("room is playing")
 	}
-	s.msgSender.SetRoomStatus(roomID, RoomStatusPlaying)
+	s.msgSender.SetRoomStatus(roomID, constants.RoomStatusPlaying)
 	p, err := s.msgSender.GetPlayersInRoom(roomID)
 	if err != nil {
 		return err
@@ -96,10 +92,10 @@ func (s *EventService) GameStart(ctx context.Context, roomID string) error {
 }
 
 func (s *EventService) CountDonw(ctx context.Context, roomID string) error {
-	ticker := time.NewTicker(1 * time.Second)
+	ticker := time.NewTicker(time.Duration(constants.IntervalTicker) * time.Second)
 	defer ticker.Stop()
 
-	timer := time.NewTimer(3 * time.Second)
+	timer := time.NewTimer(time.Duration(constants.CountDownTimer) * time.Second)
 
 	startTime := time.Now()
 
@@ -117,7 +113,7 @@ func (s *EventService) CountDonw(ctx context.Context, roomID string) error {
 				RoomId:  roomID,
 				Event:   resources.Event_EVENT_TIMER,
 				Players: p,
-				Time:    int32(elapsedTime.Seconds()) - 4,
+				Time:    int32(elapsedTime.Seconds()) - int32(constants.CountDownTimer) - 1,
 			}
 			fmt.Println("response: ", r)
 			data, err := proto.Marshal(r)
@@ -132,10 +128,10 @@ func (s *EventService) CountDonw(ctx context.Context, roomID string) error {
 }
 
 func (s *EventService) Timer(ctx context.Context, timerCh chan<- error, doneCh <-chan struct{}, roomID string) {
-	ticker := time.NewTicker(1 * time.Second)
+	ticker := time.NewTicker(time.Duration(constants.IntervalTicker) * time.Second)
 	defer ticker.Stop()
 
-	timer := time.NewTimer(30 * time.Second)
+	timer := time.NewTimer(time.Duration(constants.TimeOutTimer) * time.Second)
 
 	startTime := 0
 
