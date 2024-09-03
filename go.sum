@@ -1,5 +1,7 @@
 github.com/c3-kotatsuneko/protobuf v0.1.20 h1:W/Emv5wVjNEFqJk27f3REK/b/lb/vZF+DL69+Oo1mCo=
 github.com/c3-kotatsuneko/protobuf v0.1.20/go.mod h1:aRneFtvclNvnlRPeHzjper8hWg9t8RbcXgAeJ8hCjMY=
+github.com/c3-kotatsuneko/protobuf v0.1.21 h1:hwL3JE1uWYLQgkz1bYusJjUV2CqBHvLQhp83qd7J4VQ=
+github.com/c3-kotatsuneko/protobuf v0.1.21/go.mod h1:aRneFtvclNvnlRPeHzjper8hWg9t8RbcXgAeJ8hCjMY=
 github.com/cespare/xxhash/v2 v2.1.1 h1:6MnRN8NT7+YBpUIWxHtefFZOKTAPgGjpQSxqLNn0+qY=
 github.com/cespare/xxhash/v2 v2.1.1/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

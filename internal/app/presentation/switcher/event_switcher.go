@@ -73,7 +73,7 @@ func (s *EventSwitcher) Switch(ctx context.Context, conn *websocket.Conn) error 
 			case resources.Mode_MODE_MULTI:
 				switch msg.Event {
 				case resources.Event_EVENT_ENTER_ROOM:
-					if err := s.eventServise.EnterRoom(ctx, msg.RoomId, msg.Players, conn); err != nil {
+					if err := s.eventServise.EnterRoom(ctx, msg.RoomId, msg.Player, conn); err != nil {
 						return err
 					}
 				case resources.Event_EVENT_GAME_START:
@@ -83,7 +83,7 @@ func (s *EventSwitcher) Switch(ctx context.Context, conn *websocket.Conn) error 
 					s.eventServise.CountDonw(ctx, msg.RoomId)
 					go s.eventServise.Timer(ctx, errCh, doneCh, msg.RoomId)
 				case resources.Event_EVENT_STATS:
-					if err := s.eventServise.Stats(ctx, msg.RoomId, msg.Players); err != nil {
+					if err := s.eventServise.Stats(ctx, msg.RoomId, msg.Player); err != nil {
 						return err
 					}
 				default:
