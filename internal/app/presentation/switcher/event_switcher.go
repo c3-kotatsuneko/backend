@@ -31,6 +31,25 @@ func NewEventSwitcher(eventServise service.IEventService, msgSender domainServic
 }
 
 func (s *EventSwitcher) Switch(ctx context.Context, conn *websocket.Conn) error {
+	//  エラーを処理するチャネル
+	errCh := make(chan error)
+	// 強制終了したい場合は、doneCh<-struct{}{}を呼ぶ
+	doneCh := make(chan struct{})
+	defer close(doneCh)
+	go func() {
+		defer close(errCh)
+		for {
+			select {
+			case err := <-errCh:
+				if err != nil {
+					fmt.Println("timer error: ", err)
+					return
+				}
+			default:
+				// do nothing
+			}
+		}
+	}()
 	for {
 		messageType, p, err := conn.ReadMessage()
 		if err != nil {
@@ -61,12 +80,8 @@ func (s *EventSwitcher) Switch(ctx context.Context, conn *websocket.Conn) error 
 					if err := s.eventServise.GameStart(ctx, msg.RoomId); err != nil {
 						return err
 					}
-					if err := s.eventServise.CountDonw(ctx, msg.RoomId); err != nil {
-						return err
-					}
-					if err := s.eventServise.Timer(ctx, msg.RoomId); err != nil {
-						return err
-					}
+					s.eventServise.CountDonw(ctx, msg.RoomId)
+					go s.eventServise.Timer(ctx, errCh, doneCh, msg.RoomId)
 				case resources.Event_EVENT_STATS:
 					if err := s.eventServise.Stats(ctx, msg.RoomId, msg.Players); err != nil {
 						return err

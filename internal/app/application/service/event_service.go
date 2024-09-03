@@ -16,7 +16,7 @@ type IEventService interface {
 	EnterRoom(ctx context.Context, roomID string, playerId *resources.Player, conn *websocket.Conn) error
 	GameStart(ctx context.Context, roomID string) error
 	CountDonw(ctx context.Context, roomID string) error
-	Timer(ctx context.Context, roomID string) error
+	Timer(ctx context.Context, timerCh chan<- error, doneCh <-chan struct{}, roomID string)
 	Stats(ctx context.Context, roomID string, player *resources.Player) error
 	Result(ctx context.Context, roomID string) error
 	ExitRoom(ctx context.Context, roomID string) error
@@ -131,38 +131,40 @@ func (s *EventService) CountDonw(ctx context.Context, roomID string) error {
 	}
 }
 
-func (s *EventService) Timer(ctx context.Context, roomID string) error {
+func (s *EventService) Timer(ctx context.Context, timerCh chan<- error, doneCh <-chan struct{}, roomID string) {
 	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
 
 	timer := time.NewTimer(30 * time.Second)
 
-	startTime := time.Now()
+	startTime := 0
 
 	for {
 		select {
 		case <-ctx.Done():
-			return nil
-		case t := <-ticker.C:
+			return
+		case <-ticker.C:
 			p, err := s.msgSender.GetPlayersInRoom(roomID)
 			if err != nil {
-				return err
+				timerCh <- err
 			}
-			elapsedTime := t.Sub(startTime)
+			startTime++
 			r := &rpc.GameStatusResponse{
 				RoomId:  roomID,
 				Event:   resources.Event_EVENT_TIMER,
 				Players: p,
-				Time:    int32(elapsedTime.Seconds()),
+				Time:    int32(startTime),
 			}
 			fmt.Println("response: ", r)
 			data, err := proto.Marshal(r)
 			if err != nil {
-				return err
+				timerCh <- err
 			}
 			s.msgSender.Broadcast(ctx, roomID, data)
 		case <-timer.C:
-			return nil
+			return
+		case <-doneCh:
+			return
 		}
 	}
 }
