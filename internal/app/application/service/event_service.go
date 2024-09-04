@@ -34,6 +34,11 @@ func NewEventService(msgSender service.IMessageSender) IEventService {
 }
 
 func (s *EventService) EnterRoom(ctx context.Context, roomID string, player *resources.Player, conn *websocket.Conn) error {
+	isRegistered := s.msgSender.IsPlayerRegistered(player.PlayerId)
+	if isRegistered {
+		fmt.Println("player is already registered")
+		return fmt.Errorf("player is already registered")
+	}
 	status, _ := s.msgSender.GetRoomStatus(roomID)
 	if status == constants.RoomStatusPlaying {
 		fmt.Println("room is playing1")

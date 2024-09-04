@@ -104,6 +104,14 @@ func (s *MsgSender) GetPlayersInRoom(roomID string) ([]*resources.Player, error)
 	return players, nil
 }
 
+func (s *MsgSender) IsPlayerRegistered(playerID string) bool {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+
+	_, ok := s.players[playerID]
+	return ok
+}
+
 func (s *MsgSender) Broadcast(ctx context.Context, roomID string, data interface{}) error {
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
