@@ -55,6 +55,7 @@ func (s *EventService) EnterRoom(ctx context.Context, roomID string, player *res
 		Event:   resources.Event_EVENT_ENTER_ROOM,
 		Players: p,
 		Time:    -1,
+		Mode:    resources.Mode_MODE_MULTI,
 	}
 	fmt.Println("response: ", r)
 	data, err := proto.Marshal(r)
@@ -86,6 +87,7 @@ func (s *EventService) GameStart(ctx context.Context, roomID string) error {
 		Event:   resources.Event_EVENT_GAME_START,
 		Players: p,
 		Time:    -1,
+		Mode:    resources.Mode_MODE_MULTI,
 	}
 	fmt.Println("response: ", r)
 	data, err := proto.Marshal(r)
@@ -119,6 +121,7 @@ func (s *EventService) CountDonw(ctx context.Context, roomID string) error {
 				Event:   resources.Event_EVENT_TIMER,
 				Players: p,
 				Time:    int32(elapsedTime.Seconds()) - int32(constants.CountDownTimer) - 1,
+				Mode:    resources.Mode_MODE_MULTI,
 			}
 			fmt.Println("response: ", r)
 			data, err := proto.Marshal(r)
@@ -155,6 +158,7 @@ func (s *EventService) Timer(ctx context.Context, timerCh chan<- error, doneCh <
 				Event:   resources.Event_EVENT_TIMER,
 				Players: p,
 				Time:    int32(startTime),
+				Mode:    resources.Mode_MODE_MULTI,
 			}
 			fmt.Println("response: ", r)
 			data, err := proto.Marshal(r)
@@ -181,6 +185,7 @@ func (s *EventService) Stats(ctx context.Context, roomID string, player *resourc
 		Event:   resources.Event_EVENT_STATS,
 		Players: p,
 		Time:    -1,
+		Mode:    resources.Mode_MODE_MULTI,
 	}
 	fmt.Println("response: ", r)
 	data, err := proto.Marshal(r)
