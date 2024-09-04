@@ -24,10 +24,10 @@ func encodeRequestToHex() string {
 	}
 
 	request := &rpc.GameStatusRequest{
-		RoomId:  "huga",
-		Event:   resources.Event_EVENT_ENTER_ROOM,
-		Mode:    resources.Mode_MODE_MULTI,
-		Players: player,
+		RoomId: "huga",
+		Event:  resources.Event_EVENT_ENTER_ROOM,
+		Mode:   resources.Mode_MODE_MULTI,
+		Player: player,
 	}
 
 	data, err := proto.Marshal(request)
