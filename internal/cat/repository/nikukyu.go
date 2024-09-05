@@ -94,3 +94,10 @@ func (hr *NikukyuRepository) addNikukyu(nikukyu *entity.Nikukyu) {
 	defer hr.mux.Unlock()
 	hr.hands[nikukyu.UserID] = nikukyu
 }
+
+func (hr *NikukyuRepository) InitNikukyu(userID string) {
+	nikukyu := &entity.Nikukyu{
+		UserID: userID,
+	}
+	hr.addNikukyu(nikukyu)
+}
