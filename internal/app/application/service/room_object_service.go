@@ -4,16 +4,17 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/K-Kizuku/kotatuneko-protobuf/gen/game/resources"
-	"github.com/K-Kizuku/kotatuneko-protobuf/gen/game/rpc"
 	"github.com/c3-kotatsuneko/backend/internal/domain/entity"
 	"github.com/c3-kotatsuneko/backend/internal/domain/repository"
 	"github.com/c3-kotatsuneko/backend/internal/domain/service"
+	"github.com/c3-kotatsuneko/protobuf/gen/game/resources"
+	"github.com/c3-kotatsuneko/protobuf/gen/game/rpc"
 	"google.golang.org/protobuf/proto"
 )
 
 type IRoomObjectService interface {
 	Calculate(ctx context.Context, senderID, roomID string, hand *entity.Hand) error
+	Get(ctx context.Context, roomID string) ([]*entity.Object, error)
 }
 
 type RoomObjectService struct {
@@ -77,4 +78,8 @@ func (s *RoomObjectService) Calculate(ctx context.Context, senderID, roomID stri
 		return err
 	}
 	return nil
+}
+
+func (s *RoomObjectService) Get(ctx context.Context, roomID string) ([]*entity.Object, error) {
+	return s.catRepo.Get(ctx, roomID)
 }

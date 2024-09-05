@@ -4,12 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
-	"github.com/K-Kizuku/kotatuneko-protobuf/gen/game/resources"
-	"github.com/K-Kizuku/kotatuneko-protobuf/gen/game/rpc"
 	"github.com/c3-kotatsuneko/backend/internal/app/application/service"
 	"github.com/c3-kotatsuneko/backend/internal/domain/entity"
 	domainService "github.com/c3-kotatsuneko/backend/internal/domain/service"
+	"github.com/c3-kotatsuneko/protobuf/gen/game/resources"
+	"github.com/c3-kotatsuneko/protobuf/gen/game/rpc"
 	"github.com/gorilla/websocket"
 	"google.golang.org/protobuf/proto"
 )
@@ -36,50 +37,58 @@ func (s *PhysicsSwitcher) Switch(ctx context.Context, conn *websocket.Conn) erro
 			fmt.Printf("Recovered from a panic: %v", err)
 		}
 	}()
-	x := &rpc.PhysicsRequest{
-		SenderId: "roomID",
-		RoomId:   "roomID",
-		Hands: &resources.Hand{
-			UserId: "roomID",
-			State:  1,
-			CenterPosition: &resources.Vector3{
-				X: 0,
-				Y: 0,
-				Z: 0,
-			},
-			ActionPosition: &resources.Vector3{
-				X: 0,
-				Y: 0,
-				Z: 0,
-			},
-		},
-	}
-	b, err := proto.Marshal(x)
-	if err != nil {
-		fmt.Println("err: ", err)
-		return err
-	}
-	if err := s.msgSender.Send(ctx, "roomID", b); err != nil {
-		fmt.Println("err: ", err)
-		return err
-	}
+	// x := &rpc.PhysicsRequest{
+	// 	SenderId: "roomID",
+	// 	RoomId:   "roomID",
+	// 	Hands: &resources.Hand{
+	// 		UserId: "roomID",
+	// 		State:  1,
+	// 		CenterPosition: &resources.Vector3{
+	// 			X: 0,
+	// 			Y: 0,
+	// 			Z: 0,
+	// 		},
+	// 		ActionPosition: &resources.Vector3{
+	// 			X: 0,
+	// 			Y: 0,
+	// 			Z: 0,
+	// 		},
+	// 	},
+	// }
+	// b, err := proto.Marshal(x)
+	// if err != nil {
+	// 	fmt.Println("err: ", err)
+	// 	return err
+	// }
+	// if err := s.msgSender.Send(ctx, "roomID", b); err != nil {
+	// 	fmt.Println("err: ", err)
+	// 	return err
+	// }
+	errCh := make(chan error)
+	go s.readPump(ctx, conn, errCh)
+	go s.writePump(ctx, errCh)
+	<-ctx.Done()
+	return nil
+}
+
+func (s *PhysicsSwitcher) readPump(ctx context.Context, conn *websocket.Conn, errCh chan<- error) ([]byte, error) {
 	for {
 		messageType, p, err := conn.ReadMessage()
 		if err != nil {
-			return err
+			errCh <- err
 		}
 		fmt.Println("messageType: ", messageType)
 		switch messageType {
 		case websocket.TextMessage:
 			var msg any
 			if err := json.Unmarshal(p, &msg); err != nil {
-				return err
+				errCh <- err
 			}
 		case websocket.BinaryMessage:
 			var msg rpc.PhysicsRequest
 			if err := proto.Unmarshal(p, &msg); err != nil {
 				fmt.Println("err: ", err)
-				return err
+				errCh <- err
 			}
 			// fmt.Println("msg: ", msg)
 			hand := &entity.Hand{
@@ -99,11 +108,67 @@ func (s *PhysicsSwitcher) Switch(ctx context.Context, conn *websocket.Conn) erro
 			fmt.Println("000000000000")
 
 			if err := s.physicsService.Calculate(ctx, msg.SenderId, msg.RoomId, hand); err != nil {
-				return err
+				errCh <- err
 			}
 		default:
-			return nil
 		}
 
+	}
+}
+
+func (s *PhysicsSwitcher) writePump(ctx context.Context, errCh chan error) {
+	ticker := time.NewTicker(time.Millisecond)
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case err := <-errCh:
+			fmt.Println("err: ", err)
+			//TODO: エラー処理
+			return
+		case <-ticker.C:
+			//TODO: roomIDを取得する
+			objs, err := s.physicsService.Get(ctx, "roomID")
+			if err != nil {
+				fmt.Println("err: ", err)
+				errCh <- err
+				return
+			}
+			resourceObj := make([]*resources.Object, 0, len(objs))
+			for _, obj := range objs {
+				resourceObj = append(resourceObj, &resources.Object{
+					ObjectId: obj.ID,
+					Layer:    obj.Layer,
+					Kinds:    resources.ObjectKind(obj.Kinds),
+					State:    resources.ObjectState(obj.State),
+					Position: &resources.Vector3{
+						X: obj.Position.X,
+						Y: obj.Position.Y,
+						Z: obj.Position.Z,
+					},
+					Size: &resources.Vector3{
+						X: obj.Size.X,
+						Y: obj.Size.Y,
+						Z: obj.Size.Z,
+					},
+				})
+			}
+			fmt.Println("resourceObj", resourceObj)
+			physics := rpc.PhysicsResponse{
+				RoomId:   "roomID",
+				SenderId: "",
+				Objects:  resourceObj,
+			}
+
+			b, err := proto.Marshal(&physics)
+			if err != nil {
+				fmt.Println(err)
+				errCh <- err
+			}
+			fmt.Println("send physics")
+			if err := s.msgSender.Broadcast(ctx, "roomID", b); err != nil {
+				errCh <- err
+			}
+		}
 	}
 }
