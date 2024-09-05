@@ -20,7 +20,7 @@ func ApplyForce(obj *entity.Nekojarashi, force *entity.Vector3) {
 }
 
 // 重力による速度の更新
-func ApplyGravity(obj *entity.Nekojarashi) {
+func applyGravity(obj *entity.Nekojarashi) {
 	force := entity.Vector3{
 		X: 0,
 		Y: 0,
@@ -30,7 +30,7 @@ func ApplyGravity(obj *entity.Nekojarashi) {
 }
 
 // 摩擦力による速度の更新
-func ApplyFriction(obj *entity.Nekojarashi) {
+func applyFriction(obj *entity.Nekojarashi) {
 	normalForce := obj.Mass * constants.Gravity
 	frictionForce := constants.KineticFriction * normalForce
 	speed := math.Sqrt(obj.Velocity.X*obj.Velocity.X + obj.Velocity.Y*obj.Velocity.Y + obj.Velocity.Z*obj.Velocity.Z)
@@ -44,6 +44,12 @@ func ApplyFriction(obj *entity.Nekojarashi) {
 		obj.Velocity.Y += friction.Y * constants.TimeStep
 		obj.Velocity.Z += friction.Z * constants.TimeStep
 	}
+}
+
+// 速度の更新
+func UpdateVelocity(obj *entity.Nekojarashi) {
+	applyGravity(obj)
+	applyFriction(obj)
 }
 
 // 位置の更新

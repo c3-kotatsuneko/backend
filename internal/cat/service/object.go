@@ -9,19 +9,23 @@ import (
 type IObjectService interface {
 	GetObjectsSlice() []*entity.Nekojarashi
 	GetObjectByObjID(key string) *entity.Nekojarashi
-	CollideWithObj() map[string][]string
+	CollideWithObj(roomID string) map[string][]string
 	ApplyForceToObj(obj1ID, obj2ID string)
+	InitObjects(roomID string)
+	UpdatePosition(roomID string)
 }
 
 type ObjectService struct {
 	or repository.IObjectRepository
 	nr repository.INikukyuRepository
+	cr repository.ICatHouseRepository
 }
 
-func NewObjectService(or repository.IObjectRepository, nr repository.INikukyuRepository) IObjectService {
+func NewObjectService(or repository.IObjectRepository, nr repository.INikukyuRepository, cr repository.ICatHouseRepository) IObjectService {
 	return &ObjectService{
 		or: or,
 		nr: nr,
+		cr: cr,
 	}
 }
 
@@ -33,9 +37,10 @@ func (os *ObjectService) GetObjectByObjID(key string) *entity.Nekojarashi {
 	return os.or.GetObjectByObjID(key)
 }
 
-// 全オブジェクトの衝突判定
-func (os *ObjectService) CollideWithObj() map[string][]string {
-	allObj := os.or.GetObjectsSlice()
+// roomの全オブジェクトの衝突判定
+func (os *ObjectService) CollideWithObj(roomID string) map[string][]string {
+	catHouse := os.cr.GetCatHouseByRoomID(roomID)
+	allObj := os.or.GetObjectsByObjIDs(catHouse.Nekojarashis)
 	collidedObjIDs := make(map[string][]string, len(allObj))
 	for i := 0; i < len(allObj); i++ {
 		for j := 0; j <= i; j++ {
@@ -55,6 +60,22 @@ func (os *ObjectService) ApplyForceToObj(obj1ID, obj2ID string) {
 	obj1 := os.or.GetObjectByObjID(obj1ID)
 	obj2 := os.or.GetObjectByObjID(obj2ID)
 	physics.CollidedVelocity(obj1, obj2)
-	physics.UpdatePosition(obj1)
-	physics.UpdatePosition(obj2)
+	// physics.UpdatePosition(obj1)
+	// physics.UpdatePosition(obj2)
+}
+
+func (os *ObjectService) InitObjects(roomID string) {
+	catHouse := os.cr.GetCatHouseByRoomID(roomID)
+	for _, v := range catHouse.Nekojarashis {
+		os.or.InitObjects(v)
+	}
+}
+
+func (os *ObjectService) UpdatePosition(roomID string) {
+	catHouse := os.cr.GetCatHouseByRoomID(roomID)
+	for _, v := range catHouse.Nekojarashis {
+		obj := os.or.GetObjectByObjID(v)
+		physics.UpdateVelocity(obj)
+		physics.UpdatePosition(obj)
+	}
 }

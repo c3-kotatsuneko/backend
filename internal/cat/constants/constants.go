@@ -19,4 +19,5 @@ const (
 	BlockSizeZ = 1.0 // ブロックのZ方向のサイズ
 	BlockMass  = 1.0 // ブロックの質量
 	TimeStep   = 0.1 // 時間刻み
+	InitBlock  = 20  // 初期ブロック数
 )
