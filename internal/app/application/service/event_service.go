@@ -141,7 +141,7 @@ func (s *EventService) Timer(ctx context.Context, timerCh chan<- error, doneCh <
 
 	timer := time.NewTimer(time.Duration(constants.TimeOutTimer) * time.Second)
 
-	startTime := 0
+	startTime := constants.TimeOutTimer + 1
 
 	for {
 		select {
@@ -152,7 +152,7 @@ func (s *EventService) Timer(ctx context.Context, timerCh chan<- error, doneCh <
 			if err != nil {
 				timerCh <- err
 			}
-			startTime++
+			startTime--
 			r := &rpc.GameStatusResponse{
 				RoomId:  roomID,
 				Event:   resources.Event_EVENT_TIMER,
