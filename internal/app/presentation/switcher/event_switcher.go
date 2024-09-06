@@ -80,8 +80,10 @@ func (s *EventSwitcher) Switch(ctx context.Context, conn *websocket.Conn) error 
 					if err := s.eventServise.GameStart(ctx, msg.RoomId); err != nil {
 						return err
 					}
-					s.eventServise.CountDonw(ctx, msg.RoomId)
-					go s.eventServise.Timer(ctx, errCh, doneCh, msg.RoomId)
+					go func() {
+						s.eventServise.CountDown(ctx, errCh, doneCh, msg.RoomId)
+						s.eventServise.Timer(ctx, errCh, doneCh, msg.RoomId)
+					}()
 				case resources.Event_EVENT_STATS:
 					if err := s.eventServise.Stats(ctx, msg.RoomId, msg.Player); err != nil {
 						return err
@@ -100,6 +102,5 @@ func (s *EventSwitcher) Switch(ctx context.Context, conn *websocket.Conn) error 
 			fmt.Println("unhandling message type")
 			return nil
 		}
-
 	}
 }
