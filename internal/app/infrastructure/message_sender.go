@@ -56,18 +56,22 @@ func (c *Client) run() {
 type MsgSender struct {
 	mutex   *sync.RWMutex
 	clients map[string]*Client           // userID -> client
-	rooms   map[string][]string          // roomID -> userIDs
 	players map[string]*resources.Player // playerID -> Player
-	status  map[string]string            // roomID -> RoomStatus
+	rooms   map[string]struct {
+		userIDs []string
+		status  string
+	} // roomID -> {userIDs, status}
 }
 
 func NewMsgSender() service.IMessageSender {
 	return &MsgSender{
-		mutex:   new(sync.RWMutex),
+		mutex:   &sync.RWMutex{},
 		clients: make(map[string]*Client),
-		rooms:   make(map[string][]string),
+		rooms: make(map[string]struct {
+			userIDs []string
+			status  string
+		}),
 		players: make(map[string]*resources.Player),
-		status:  make(map[string]string),
 	}
 }
 
@@ -91,12 +95,12 @@ func (s *MsgSender) Send(ctx context.Context, to string, data interface{}) error
 func (s *MsgSender) GetPlayersInRoom(roomID string) ([]*resources.Player, error) {
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
-	playerIDs, ok := s.rooms[roomID]
+	room, ok := s.rooms[roomID]
 	if !ok {
 		return nil, errors.New("room not found")
 	}
-	players := make([]*resources.Player, 0, len(playerIDs))
-	for _, playerID := range playerIDs {
+	players := make([]*resources.Player, 0, len(room.userIDs))
+	for _, playerID := range room.userIDs {
 		if player, ok := s.players[playerID]; ok {
 			players = append(players, player)
 		}
@@ -116,7 +120,7 @@ func (s *MsgSender) Broadcast(ctx context.Context, roomID string, data interface
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
 
-	for _, id := range s.rooms[roomID] {
+	for _, id := range s.rooms[roomID].userIDs {
 		client, ok := s.clients[id]
 		if !ok {
 			continue
@@ -145,7 +149,9 @@ func (s *MsgSender) Register(roomID string, player *resources.Player, conn *webs
 	go client.run()
 
 	s.clients[player.PlayerId] = client
-	s.rooms[roomID] = append(s.rooms[roomID], player.PlayerId)
+	room := s.rooms[roomID]
+	room.userIDs = append(room.userIDs, player.PlayerId)
+	s.rooms[roomID] = room
 	s.players[player.PlayerId] = player
 }
 
@@ -162,10 +168,11 @@ func (s *MsgSender) Unregister(userID, roomID string) {
 	delete(s.clients, userID)
 	delete(s.players, userID)
 
-	userIDs := s.rooms[roomID]
-	for i, id := range userIDs {
+	room := s.rooms[roomID]
+	for i, id := range room.userIDs {
 		if id == userID {
-			s.rooms[roomID] = append(userIDs[:i], userIDs[i+1:]...)
+			room.userIDs = append(room.userIDs[:i], room.userIDs[i+1:]...)
+			s.rooms[roomID] = room
 			break
 		}
 	}
@@ -187,7 +194,9 @@ func (s *MsgSender) SetRoomStatus(roomID string, status string) error {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
-	s.status[roomID] = status
+	room := s.rooms[roomID]
+	room.status = status
+	s.rooms[roomID] = room
 	return nil
 }
 
@@ -195,8 +204,8 @@ func (s *MsgSender) GetRoomStatus(roomID string) (string, error) {
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
 
-	if _, ok := s.status[roomID]; !ok {
+	if _, ok := s.rooms[roomID]; !ok {
 		return "", errors.New("roomID not found")
 	}
-	return s.status[roomID], nil
+	return s.rooms[roomID].status, nil
 }
