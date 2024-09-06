@@ -95,10 +95,7 @@ func (s *MsgSender) Send(ctx context.Context, to string, data interface{}) error
 func (s *MsgSender) GetPlayersInRoom(roomID string) ([]*resources.Player, error) {
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
-	room, ok := s.rooms[roomID]
-	if !ok {
-		return nil, errors.New("room not found")
-	}
+	room := s.rooms[roomID]
 	players := make([]*resources.Player, 0, len(room.userIDs))
 	for _, playerID := range room.userIDs {
 		if player, ok := s.players[playerID]; ok {

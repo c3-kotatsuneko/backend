@@ -45,16 +45,26 @@ func (s *EventService) EnterRoom(ctx context.Context, roomID string, player *res
 		fmt.Println("room is playing1")
 		return errors.New("room is playing1")
 	}
+	p, err := s.msgSender.GetPlayersInRoom(roomID)
+	if err != nil {
+		return err
+	}
+	i := len(p)
+	if i < len(constants.Directions) {
+		player.Direction = constants.Directions[i]
+	} else {
+		return errors.New("room is full")
+	}
 	s.msgSender.Register(roomID, player, conn, nil)
 	s.msgSender.SetRoomStatus(roomID, constants.RoomStatusWaiting)
-	p, err := s.msgSender.GetPlayersInRoom(roomID)
+	players, err := s.msgSender.GetPlayersInRoom(roomID)
 	if err != nil {
 		return err
 	}
 	r := &rpc.GameStatusResponse{
 		RoomId:  roomID,
 		Event:   resources.Event_EVENT_ENTER_ROOM,
-		Players: p,
+		Players: players,
 		Time:    -1,
 		Mode:    resources.Mode_MODE_MULTI,
 	}
