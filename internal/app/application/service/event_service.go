@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -37,12 +38,12 @@ func (s *EventService) EnterRoom(ctx context.Context, roomID string, player *res
 	isRegistered := s.msgSender.IsPlayerRegistered(player.PlayerId)
 	if isRegistered {
 		fmt.Println("player is already registered")
-		return fmt.Errorf("player is already registered")
+		return errors.New("player is already registered")
 	}
 	status, _ := s.msgSender.GetRoomStatus(roomID)
 	if status == constants.RoomStatusPlaying {
 		fmt.Println("room is playing1")
-		return fmt.Errorf("room is playing")
+		return errors.New("room is playing1")
 	}
 	s.msgSender.Register(roomID, player, conn, nil)
 	s.msgSender.SetRoomStatus(roomID, constants.RoomStatusWaiting)
@@ -75,7 +76,7 @@ func (s *EventService) GameStart(ctx context.Context, roomID string) error {
 	}
 	if status == constants.RoomStatusPlaying {
 		fmt.Println("room is playing2")
-		return fmt.Errorf("room is playing")
+		return errors.New("room is playing2")
 	}
 	s.msgSender.SetRoomStatus(roomID, constants.RoomStatusPlaying)
 	p, err := s.msgSender.GetPlayersInRoom(roomID)
