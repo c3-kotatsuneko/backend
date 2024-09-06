@@ -15,16 +15,17 @@ import (
 // Protobufメッセージをエンコードして16進数文字列に変換する関数
 func encodeRequestToHex() string {
 	player := &resources.Player{
-		PlayerId: "3",
-		Name:     "admin3",
-		Color:    "red",
-		Score:    10,
-		Rank:     5,
-		Time:     1,
+		PlayerId:  "5",
+		Name:      "admin5",
+		Color:     "red",
+		Score:     10,
+		Rank:      5,
+		Time:      1,
+		Direction: resources.Direction_DIRECTION_FRONT,
 	}
 
 	request := &rpc.GameStatusRequest{
-		RoomId: "huga",
+		RoomId: "hoge",
 		Event:  resources.Event_EVENT_ENTER_ROOM,
 		Mode:   resources.Mode_MODE_MULTI,
 		Player: player,
@@ -46,12 +47,13 @@ func encodeResponseToHex() string {
 		Event:  resources.Event_EVENT_ENTER_ROOM,
 		Players: []*resources.Player{
 			{
-				PlayerId: "1",
-				Name:     "admin1",
-				Color:    "red",
-				Score:    10,
-				Rank:     5,
-				Time:     1,
+				PlayerId:  "1",
+				Name:      "admin1",
+				Color:     "red",
+				Score:     10,
+				Rank:      5,
+				Time:      1,
+				Direction: resources.Direction_DIRECTION_FRONT,
 			},
 			{
 				PlayerId: "2",

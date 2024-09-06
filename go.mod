@@ -3,7 +3,7 @@ module github.com/c3-kotatsuneko/backend
 go 1.23rc1
 
 require (
-	github.com/c3-kotatsuneko/protobuf v0.1.21
+	github.com/c3-kotatsuneko/protobuf v0.1.23
 	github.com/dgraph-io/ristretto v0.1.1
 	github.com/google/wire v0.6.0
 	github.com/gorilla/websocket v1.5.3
