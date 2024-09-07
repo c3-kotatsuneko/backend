@@ -6,7 +6,8 @@ const (
 	IntervalTicker int = 1
 	CountDownTimer int = 3
 	//TODO: 本番では300にする
-	TimeOutTimer      int    = 30
+	TimeOutTimer      int    = 300
+	StackBlock               = 5
 	RoomStatusWaiting string = "waiting"
 	RoomStatusPlaying string = "playing"
 )

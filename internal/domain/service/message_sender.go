@@ -17,4 +17,7 @@ type IMessageSender interface {
 	UpdatePlayer(player *resources.Player) error
 	SetRoomStatus(roomID string, status string) error
 	GetRoomStatus(roomID string) (status string, err error)
+	GetTime(ctx context.Context, roomID string) int32
+	StartTimer(ctx context.Context, roomID string)
+	DestroyRoom(ctx context.Context, roomID string)
 }
