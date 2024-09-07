@@ -65,6 +65,8 @@ func (s *PhysicsSwitcher) Switch(ctx context.Context, conn *websocket.Conn) erro
 	// 	return err
 	// }
 	errCh := make(chan error)
+	s.msgSender.Register("roomID", "roomID", conn, errCh)
+	s.physicsService.Init(ctx, "roomID")
 	go s.readPump(ctx, conn, errCh)
 	go s.writePump(ctx, errCh)
 	<-ctx.Done()
@@ -117,7 +119,7 @@ func (s *PhysicsSwitcher) readPump(ctx context.Context, conn *websocket.Conn, er
 }
 
 func (s *PhysicsSwitcher) writePump(ctx context.Context, errCh chan error) {
-	ticker := time.NewTicker(time.Millisecond)
+	ticker := time.NewTicker(100 * time.Millisecond)
 	for {
 		select {
 		case <-ctx.Done():
@@ -156,7 +158,7 @@ func (s *PhysicsSwitcher) writePump(ctx context.Context, errCh chan error) {
 			fmt.Println("resourceObj", resourceObj)
 			physics := rpc.PhysicsResponse{
 				RoomId:   "roomID",
-				SenderId: "",
+				SenderId: "roomID",
 				Objects:  resourceObj,
 			}
 

@@ -3,6 +3,7 @@ package repository
 import (
 	"sync"
 
+	"github.com/c3-kotatsuneko/backend/internal/cat/constants"
 	"github.com/c3-kotatsuneko/backend/internal/domain/entity"
 )
 
@@ -80,5 +81,11 @@ func (or *ObjectRepository) InitObjects(objID string) {
 	or.mux.Lock()
 	defer or.mux.Unlock()
 
-	or.objs[objID] = &entity.Nekojarashi{}
+	or.objs[objID] = &entity.Nekojarashi{
+		Size: entity.Vector3{
+			X: constants.BlockSizeX,
+			Y: constants.BlockSizeY,
+			Z: constants.BlockSizeZ,
+		},
+	}
 }

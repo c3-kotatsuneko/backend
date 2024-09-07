@@ -7,14 +7,12 @@ import (
 	"github.com/c3-kotatsuneko/backend/internal/domain/entity"
 	"github.com/c3-kotatsuneko/backend/internal/domain/repository"
 	"github.com/c3-kotatsuneko/backend/internal/domain/service"
-	"github.com/c3-kotatsuneko/protobuf/gen/game/resources"
-	"github.com/c3-kotatsuneko/protobuf/gen/game/rpc"
-	"google.golang.org/protobuf/proto"
 )
 
 type IRoomObjectService interface {
 	Calculate(ctx context.Context, senderID, roomID string, hand *entity.Hand) error
 	Get(ctx context.Context, roomID string) ([]*entity.Object, error)
+	Init(ctx context.Context, roomID string) error
 }
 
 type RoomObjectService struct {
@@ -37,49 +35,14 @@ func (s *RoomObjectService) Calculate(ctx context.Context, senderID, roomID stri
 	if err := s.catRepo.Calculate(ctx, roomID, hand); err != nil {
 		return err
 	}
-	fmt.Println("calculate")
-	// ここで1フレーム待つ？
-	objs, err := s.catRepo.Get(ctx, roomID)
-	fmt.Println("get", objs)
-	resourceObj := make([]*resources.Object, 0, len(objs))
-	for _, obj := range objs {
-		resourceObj = append(resourceObj, &resources.Object{
-			ObjectId: obj.ID,
-			Layer:    obj.Layer,
-			Kinds:    resources.ObjectKind(obj.Kinds),
-			State:    resources.ObjectState(obj.State),
-			Position: &resources.Vector3{
-				X: obj.Position.X,
-				Y: obj.Position.Y,
-				Z: obj.Position.Z,
-			},
-			Size: &resources.Vector3{
-				X: obj.Size.X,
-				Y: obj.Size.Y,
-				Z: obj.Size.Z,
-			},
-		})
-	}
-	fmt.Println("resourceObj", resourceObj)
 
-	physics := rpc.PhysicsResponse{
-		RoomId:   roomID,
-		SenderId: senderID,
-		Objects:  resourceObj,
-	}
-
-	b, err := proto.Marshal(&physics)
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
-	fmt.Println("send physics")
-	if err := s.msgSender.Broadcast(ctx, roomID, b); err != nil {
-		return err
-	}
 	return nil
 }
 
 func (s *RoomObjectService) Get(ctx context.Context, roomID string) ([]*entity.Object, error) {
 	return s.catRepo.Get(ctx, roomID)
+}
+
+func (s *RoomObjectService) Init(ctx context.Context, roomID string) error {
+	return s.catRepo.Init(ctx, roomID)
 }
