@@ -7,9 +7,12 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"google.golang.org/protobuf/proto"
 
+	"github.com/c3-kotatsuneko/backend/internal/app/constants"
 	"github.com/c3-kotatsuneko/backend/internal/domain/service"
 	"github.com/c3-kotatsuneko/protobuf/gen/game/resources"
+	"github.com/c3-kotatsuneko/protobuf/gen/game/rpc"
 	"github.com/gorilla/websocket"
 )
 
@@ -57,20 +60,20 @@ type MsgSender struct {
 	mutex   *sync.RWMutex
 	clients map[string]*Client           // userID -> client
 	players map[string]*resources.Player // playerID -> Player
-	rooms   map[string]struct {
-		userIDs []string
-		status  string
-	} // roomID -> {userIDs, status}
+	rooms   map[string]*Room             // roomID -> {userIDs, status}
+}
+
+type Room struct {
+	userIDs []string
+	status  string
+	time    int32
 }
 
 func NewMsgSender() service.IMessageSender {
 	return &MsgSender{
 		mutex:   &sync.RWMutex{},
 		clients: make(map[string]*Client),
-		rooms: make(map[string]struct {
-			userIDs []string
-			status  string
-		}),
+		rooms:   make(map[string]*Room),
 		players: make(map[string]*resources.Player),
 	}
 }
@@ -90,22 +93,6 @@ func (s *MsgSender) Send(ctx context.Context, to string, data interface{}) error
 	case <-time.After(writeWait):
 		return errors.New("websocket write timeout")
 	}
-}
-
-func (s *MsgSender) GetPlayersInRoom(roomID string) ([]*resources.Player, error) {
-	s.mutex.RLock()
-	defer s.mutex.RUnlock()
-	room, exist := s.rooms[roomID]
-	if !exist {
-		return nil, errors.New("room not found")
-	}
-	players := make([]*resources.Player, 0, len(room.userIDs))
-	for _, playerID := range room.userIDs {
-		if player, ok := s.players[playerID]; ok {
-			players = append(players, player)
-		}
-	}
-	return players, nil
 }
 
 func (s *MsgSender) IsPlayerRegistered(playerID string) bool {
@@ -149,7 +136,14 @@ func (s *MsgSender) Register(roomID string, player *resources.Player, conn *webs
 	go client.run()
 
 	s.clients[player.PlayerId] = client
-	room := s.rooms[roomID]
+	room, exists := s.rooms[roomID]
+	if !exists {
+		room = &Room{
+			userIDs: make([]string, 0, 4),
+			time:    int32(-1*constants.CountDownTimer - 1),
+		}
+	}
+
 	room.userIDs = append(room.userIDs, player.PlayerId)
 	s.rooms[roomID] = room
 	s.players[player.PlayerId] = player
@@ -208,4 +202,119 @@ func (s *MsgSender) GetRoomStatus(roomID string) (string, error) {
 		return "", errors.New("roomID not found")
 	}
 	return s.rooms[roomID].status, nil
+}
+
+func (s *MsgSender) GetPlayersInRoom(roomID string) ([]*resources.Player, error) {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+	room, exist := s.rooms[roomID]
+	if !exist {
+		return make([]*resources.Player, 0), nil
+	}
+	players := make([]*resources.Player, 0, len(room.userIDs))
+	for _, playerID := range room.userIDs {
+		if player, ok := s.players[playerID]; ok {
+			players = append(players, player)
+		}
+	}
+	return players, nil
+}
+
+func (s *MsgSender) GetTime(ctx context.Context, roomID string) int32 {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	room, exist := s.rooms[roomID]
+	if !exist {
+		return 0
+	}
+	t := room.time
+	if t > 0 {
+		return int32(constants.TimeOutTimer-1) - t
+	} else {
+		return t
+	}
+}
+
+func (s *MsgSender) setTime(ctx context.Context, roomID string, time int32) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	room, exist := s.rooms[roomID]
+	if !exist {
+		return
+	}
+	room.time = time
+	s.rooms[roomID] = room
+}
+
+func (s *MsgSender) incrimentTime(ctx context.Context, roomID string) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	room, exist := s.rooms[roomID]
+	if !exist {
+		return
+	}
+	room.time++
+	s.rooms[roomID] = room
+}
+
+func (s *MsgSender) StartTimer(ctx context.Context, roomID string) {
+	ticker := time.NewTicker(time.Duration(constants.IntervalTicker) * time.Second)
+	defer ticker.Stop()
+
+	timer := time.NewTimer(time.Duration(constants.CountDownTimer+constants.TimeOutTimer) * time.Second)
+	s.mutex.RLock()
+	_, exist := s.rooms[roomID]
+	s.mutex.RUnlock()
+	if !exist {
+		return
+	}
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			p, err := s.GetPlayersInRoom(roomID)
+			if err != nil {
+				fmt.Println("err: ", err)
+			}
+			s.incrimentTime(ctx, roomID)
+			r := &rpc.GameStatusResponse{
+				RoomId:  roomID,
+				Event:   resources.Event_EVENT_TIMER,
+				Players: p,
+				Time:    s.GetTime(ctx, roomID),
+				Mode:    resources.Mode_MODE_MULTI,
+			}
+			fmt.Println("response: ", r)
+			data, err := proto.Marshal(r)
+			if err != nil {
+				fmt.Println("err: ", err)
+			}
+			s.Broadcast(ctx, roomID, data)
+		case <-timer.C:
+			return
+		}
+	}
+}
+
+func (s *MsgSender) DestroyRoom(ctx context.Context, roomID string) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	_, exist := s.rooms[roomID]
+	if !exist {
+		return
+	}
+	for _, id := range s.rooms[roomID].userIDs {
+		client, ok := s.clients[id]
+		if !ok {
+			continue
+		}
+		close(client.cancel)
+		delete(s.clients, id)
+		delete(s.players, id)
+	}
+
+	delete(s.rooms, roomID)
+
 }

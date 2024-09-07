@@ -81,11 +81,19 @@ func (s *EventSwitcher) Switch(ctx context.Context, conn *websocket.Conn) error 
 						return err
 					}
 					go func() {
-						s.eventServise.CountDown(ctx, errCh, doneCh, msg.RoomId)
+						// s.eventServise.CountDown(ctx, errCh, doneCh, msg.RoomId)
 						s.eventServise.Timer(ctx, errCh, doneCh, msg.RoomId)
 					}()
 				case resources.Event_EVENT_STATS:
 					if err := s.eventServise.Stats(ctx, msg.RoomId, msg.Player); err != nil {
+						return err
+					}
+				case resources.Event_EVENT_STACK_BLOCK:
+					if err := s.eventServise.StackBlock(ctx, msg.RoomId, msg.Player); err != nil {
+						return err
+					}
+				case resources.Event_EVENT_RESULT:
+					if err := s.eventServise.Result(ctx, msg.RoomId); err != nil {
 						return err
 					}
 				default:

@@ -15,13 +15,14 @@ import (
 )
 
 type IEventService interface {
-	EnterRoom(ctx context.Context, roomID string, playerId *resources.Player, conn *websocket.Conn) error
+	EnterRoom(ctx context.Context, roomID string, player *resources.Player, conn *websocket.Conn) error
 	GameStart(ctx context.Context, roomID string) error
 	CountDown(ctx context.Context, timerCh chan<- error, doneCh <-chan struct{}, roomID string)
 	Timer(ctx context.Context, timerCh chan<- error, doneCh <-chan struct{}, roomID string)
 	Stats(ctx context.Context, roomID string, player *resources.Player) error
 	Result(ctx context.Context, roomID string) error
 	ExitRoom(ctx context.Context, roomID string) error
+	StackBlock(ctx context.Context, roomId string, player *resources.Player) error
 }
 
 type EventService struct {
@@ -149,42 +150,7 @@ func (s *EventService) CountDown(ctx context.Context, timerCh chan<- error, done
 }
 
 func (s *EventService) Timer(ctx context.Context, timerCh chan<- error, doneCh <-chan struct{}, roomID string) {
-	ticker := time.NewTicker(time.Duration(constants.IntervalTicker) * time.Second)
-	defer ticker.Stop()
-
-	timer := time.NewTimer(time.Duration(constants.TimeOutTimer) * time.Second)
-
-	startTime := constants.TimeOutTimer + 1
-
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case <-ticker.C:
-			p, err := s.msgSender.GetPlayersInRoom(roomID)
-			if err != nil {
-				timerCh <- err
-			}
-			startTime--
-			r := &rpc.GameStatusResponse{
-				RoomId:  roomID,
-				Event:   resources.Event_EVENT_TIMER,
-				Players: p,
-				Time:    int32(startTime),
-				Mode:    resources.Mode_MODE_MULTI,
-			}
-			fmt.Println("response: ", r)
-			data, err := proto.Marshal(r)
-			if err != nil {
-				timerCh <- err
-			}
-			s.msgSender.Broadcast(ctx, roomID, data)
-		case <-timer.C:
-			return
-		case <-doneCh:
-			return
-		}
-	}
+	s.msgSender.StartTimer(ctx, roomID)
 }
 
 func (s *EventService) Stats(ctx context.Context, roomID string, player *resources.Player) error {
@@ -210,9 +176,36 @@ func (s *EventService) Stats(ctx context.Context, roomID string, player *resourc
 }
 
 func (s *EventService) Result(ctx context.Context, roomID string) error {
-	panic("unimplemented")
+	players, err := s.msgSender.GetPlayersInRoom(roomID)
+	if err != nil {
+		return err
+	}
+	r := &rpc.GameStatusResponse{
+		RoomId:  roomID,
+		Event:   resources.Event_EVENT_RESULT,
+		Players: players,
+		Time:    -1,
+		Mode:    resources.Mode_MODE_MULTI,
+	}
+	fmt.Println("response: ", r)
+	data, err := proto.Marshal(r)
+	if err != nil {
+		return err
+	}
+	s.msgSender.Broadcast(ctx, roomID, data)
+	s.msgSender.DestroyRoom(ctx, roomID)
+	return nil
 }
 
 func (s *EventService) ExitRoom(ctx context.Context, roomID string) error {
 	panic("unimplemented")
+}
+
+func (s *EventService) StackBlock(ctx context.Context, roomId string, player *resources.Player) error {
+	player.Score++
+	if player.Score >= constants.StackBlock {
+		player.Time = s.msgSender.GetTime(ctx, roomId)
+	}
+	s.msgSender.UpdatePlayer(player)
+	return nil
 }
