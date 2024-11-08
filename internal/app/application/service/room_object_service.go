@@ -7,6 +7,9 @@ import (
 	"github.com/c3-kotatsuneko/backend/internal/domain/entity"
 	"github.com/c3-kotatsuneko/backend/internal/domain/repository"
 	"github.com/c3-kotatsuneko/backend/internal/domain/service"
+	"github.com/c3-kotatsuneko/protobuf/gen/game/resources"
+	"github.com/c3-kotatsuneko/protobuf/gen/game/rpc"
+	"google.golang.org/protobuf/proto"
 )
 
 type IRoomObjectService interface {

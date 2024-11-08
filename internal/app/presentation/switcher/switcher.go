@@ -7,5 +7,5 @@ import (
 )
 
 type ISwitcher interface {
-	Switch(ctx context.Context, conn *websocket.Conn) error
+	Switch(ctx context.Context, doneCh chan struct{}, conn *websocket.Conn) error
 }

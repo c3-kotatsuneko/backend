@@ -40,12 +40,16 @@ func (ws *WSHandler) Start(ctx context.Context, w http.ResponseWriter, r *http.R
 	if err != nil {
 		return err
 	}
+	defer conn.Close()
+
+	doneCh := make(chan struct{})
 
 	go func() {
-		if err := switcher.Switch(ctx, conn); err != nil {
+		if err := switcher.Switch(ctx, doneCh, conn); err != nil {
 			return
 		}
 	}()
+	<-doneCh
 	// defer close(errCh)
 	return nil
 }
