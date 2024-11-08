@@ -36,8 +36,10 @@ func InitHandler() *presentation.Root {
 		cat.New,
 		catService.NewHand,
 		catService.NewObjectService,
+		catService.NewRoomService,
 		catRepository.NewHandRepository,
 		catRepository.NewObjectRepository,
+		catRepository.NewCatHouseRepository,
 	)
 	return &presentation.Root{}
 }
