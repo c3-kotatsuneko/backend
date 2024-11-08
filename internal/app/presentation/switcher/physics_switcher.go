@@ -30,7 +30,7 @@ func NewPhysicsSwitcher(physicsService service.IRoomObjectService, msgSender dom
 	}
 }
 
-func (s *PhysicsSwitcher) Switch(ctx context.Context, conn *websocket.Conn) error {
+func (s *PhysicsSwitcher) Switch(ctx context.Context, doneCh chan struct{}, conn *websocket.Conn) error {
 	defer func() {
 		if err := recover(); err != nil {
 			fmt.Printf("Recovered from a panic: %v", err)

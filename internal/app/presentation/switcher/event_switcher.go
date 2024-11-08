@@ -30,12 +30,12 @@ func NewEventSwitcher(eventServise service.IEventService, msgSender domainServic
 	}
 }
 
-func (s *EventSwitcher) Switch(ctx context.Context, conn *websocket.Conn) error {
+func (s *EventSwitcher) Switch(ctx context.Context, doneCh chan struct{}, conn *websocket.Conn) error {
 	//  エラーを処理するチャネル
 	errCh := make(chan error)
-	// 強制終了したい場合は、doneCh<-struct{}{}を呼ぶ
-	doneCh := make(chan struct{})
-	defer close(doneCh)
+	// 終了したい場合は、doneCh<-struct{}{}を呼ぶ
+	// doneCh := make(chan struct{})
+	// defer close(doneCh)
 	go func() {
 		defer close(errCh)
 		for {
@@ -45,6 +45,7 @@ func (s *EventSwitcher) Switch(ctx context.Context, conn *websocket.Conn) error 
 					fmt.Println("timer error: ", err)
 					return
 				}
+				doneCh <- struct{}{}
 			default:
 				// do nothing
 			}
@@ -53,20 +54,26 @@ func (s *EventSwitcher) Switch(ctx context.Context, conn *websocket.Conn) error 
 	for {
 		messageType, p, err := conn.ReadMessage()
 		if err != nil {
-			return err
+			errCh <- err
+			break
+
 		}
 		fmt.Println("messageType: ", messageType)
 		switch messageType {
 		case websocket.TextMessage:
 			var msg any
 			if err := json.Unmarshal(p, &msg); err != nil {
-				return err
+				errCh <- err
+				break
+
 			}
 		case websocket.BinaryMessage:
 			var msg rpc.GameStatusRequest
 			if err := proto.Unmarshal(p, &msg); err != nil {
 				fmt.Println("err: ", err)
-				return err
+				errCh <- err
+				break
+
 			}
 			switch msg.Mode {
 			case resources.Mode_MODE_TIME_ATTACK:
@@ -74,11 +81,15 @@ func (s *EventSwitcher) Switch(ctx context.Context, conn *websocket.Conn) error 
 				switch msg.Event {
 				case resources.Event_EVENT_ENTER_ROOM:
 					if err := s.eventServise.EnterRoom(ctx, msg.RoomId, msg.Player, conn); err != nil {
-						return err
+						errCh <- err
+						break
+
 					}
 				case resources.Event_EVENT_GAME_START:
 					if err := s.eventServise.GameStart(ctx, msg.RoomId); err != nil {
-						return err
+						errCh <- err
+						break
+
 					}
 					go func() {
 						// s.eventServise.CountDown(ctx, errCh, doneCh, msg.RoomId)
@@ -86,29 +97,44 @@ func (s *EventSwitcher) Switch(ctx context.Context, conn *websocket.Conn) error 
 					}()
 				case resources.Event_EVENT_STATS:
 					if err := s.eventServise.Stats(ctx, msg.RoomId, msg.Player); err != nil {
-						return err
+						errCh <- err
+						break
+
 					}
 				case resources.Event_EVENT_STACK_BLOCK:
 					if err := s.eventServise.StackBlock(ctx, msg.RoomId, msg.Player); err != nil {
-						return err
+						errCh <- err
+						break
+
 					}
 				case resources.Event_EVENT_RESULT:
 					if err := s.eventServise.Result(ctx, msg.RoomId); err != nil {
-						return err
+						errCh <- err
+						break
+
 					}
 				default:
 					fmt.Println("unhandling event")
-					return errors.New("unhandling event")
+					errCh <- errors.New("unhandling event")
+					break
+
 				}
 			case resources.Mode_MODE_TRAINING:
 			case resources.Mode_MODE_UNKNOWN:
-				return errors.New("unknown mode")
+				errCh <- errors.New("unknown mode")
+				break
+
 			default:
-				return errors.New("unhandling mode")
+				errCh <- errors.New("unhandling mode")
+				break
+
 			}
 		default:
 			fmt.Println("unhandling message type")
-			return nil
+			errCh <- nil
+			break
 		}
 	}
+	doneCh <- struct{}{}
+	return nil
 }
