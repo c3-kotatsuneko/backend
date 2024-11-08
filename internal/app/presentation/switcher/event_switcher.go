@@ -45,7 +45,9 @@ func (s *EventSwitcher) Switch(ctx context.Context, doneCh chan struct{}, conn *
 					fmt.Println("timer error: ", err)
 					return
 				}
+
 				doneCh <- struct{}{}
+
 			default:
 				// do nothing
 			}
@@ -65,6 +67,8 @@ L:
 			}
 			fmt.Println("messageType: ", messageType)
 			switch messageType {
+			case websocket.CloseInvalidFramePayloadData, websocket.CloseInternalServerErr, websocket.CloseGoingAway, websocket.CloseAbnormalClosure, websocket.CloseMandatoryExtension, websocket.CloseMessage, websocket.CloseMessageTooBig, websocket.CloseNoStatusReceived, websocket.CloseNormalClosure, websocket.ClosePolicyViolation, websocket.CloseProtocolError, websocket.CloseServiceRestart, websocket.CloseTLSHandshake, websocket.CloseTryAgainLater, websocket.CloseUnsupportedData:
+				doneCh <- struct{}{}
 			case websocket.TextMessage:
 				var msg any
 				if err := json.Unmarshal(p, &msg); err != nil {
