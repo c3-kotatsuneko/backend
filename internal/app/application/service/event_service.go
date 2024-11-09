@@ -150,7 +150,7 @@ func (s *EventService) CountDown(ctx context.Context, timerCh chan<- error, done
 }
 
 func (s *EventService) Timer(ctx context.Context, timerCh chan<- error, doneCh <-chan struct{}, roomID string) {
-	s.msgSender.StartTimer(ctx, roomID)
+	s.msgSender.StartTimer(ctx, doneCh, roomID)
 }
 
 func (s *EventService) Stats(ctx context.Context, roomID string, player *resources.Player) error {

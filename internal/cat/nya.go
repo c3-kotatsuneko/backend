@@ -67,3 +67,22 @@ func (c *Cat) Init(ctx context.Context, roomID string) error {
 
 	return nil
 }
+
+func (c *Cat) Share(ctx context.Context, roomID string, objs []*entity.Object) error {
+	catHouse := c.rs.GetCatHouseByRoomID(roomID)
+	nekojarashi := make([]*entity.Nekojarashi, 0, 20)
+	for _, obj := range objs {
+		catHouse.Nekojarashis = append(catHouse.Nekojarashis, obj.ID)
+		nekojarashi = append(nekojarashi, &entity.Nekojarashi{
+			ID:       obj.ID,
+			Layer:    obj.Layer,
+			Kinds:    obj.Kinds,
+			State:    obj.State,
+			Position: obj.Position,
+			Size:     obj.Size,
+		})
+	}
+	c.os.SharePosition(roomID, nekojarashi)
+
+	return nil
+}

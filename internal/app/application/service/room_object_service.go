@@ -7,15 +7,13 @@ import (
 	"github.com/c3-kotatsuneko/backend/internal/domain/entity"
 	"github.com/c3-kotatsuneko/backend/internal/domain/repository"
 	"github.com/c3-kotatsuneko/backend/internal/domain/service"
-	"github.com/c3-kotatsuneko/protobuf/gen/game/resources"
-	"github.com/c3-kotatsuneko/protobuf/gen/game/rpc"
-	"google.golang.org/protobuf/proto"
 )
 
 type IRoomObjectService interface {
 	Calculate(ctx context.Context, senderID, roomID string, hand *entity.Hand) error
 	Get(ctx context.Context, roomID string) ([]*entity.Object, error)
 	Init(ctx context.Context, roomID string) error
+	Share(ctx context.Context, roomID string, objs []*entity.Object) error
 }
 
 type RoomObjectService struct {
@@ -48,4 +46,8 @@ func (s *RoomObjectService) Get(ctx context.Context, roomID string) ([]*entity.O
 
 func (s *RoomObjectService) Init(ctx context.Context, roomID string) error {
 	return s.catRepo.Init(ctx, roomID)
+}
+
+func (s *RoomObjectService) Share(ctx context.Context, roomID string, objs []*entity.Object) error {
+	return s.catRepo.Share(ctx, roomID, objs)
 }

@@ -18,6 +18,6 @@ type IMessageSender interface {
 	SetRoomStatus(roomID string, status string) error
 	GetRoomStatus(roomID string) (status string, err error)
 	GetTime(ctx context.Context, roomID string) int32
-	StartTimer(ctx context.Context, roomID string)
+	StartTimer(ctx context.Context, doneCh <-chan struct{}, roomID string)
 	DestroyRoom(ctx context.Context, roomID string)
 }

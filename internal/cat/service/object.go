@@ -13,6 +13,7 @@ type IObjectService interface {
 	ApplyForceToObj(obj1ID, obj2ID string)
 	InitObjects(roomID string)
 	UpdatePosition(roomID string)
+	SharePosition(roomID string, objs []*entity.Nekojarashi)
 }
 
 type ObjectService struct {
@@ -77,5 +78,11 @@ func (os *ObjectService) UpdatePosition(roomID string) {
 		obj := os.or.GetObjectByObjID(v)
 		physics.UpdateVelocity(obj)
 		physics.UpdatePosition(obj)
+	}
+}
+
+func (os *ObjectService) SharePosition(roomID string, objs []*entity.Nekojarashi) {
+	for _, obj := range objs {
+		os.or.ModifyObjects(obj.ID, obj)
 	}
 }

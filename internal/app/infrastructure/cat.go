@@ -34,6 +34,10 @@ func (c *Cat) Init(ctx context.Context, roomID string) error {
 	return c.cat.Init(ctx, roomID)
 }
 
+func (c *Cat) Share(ctx context.Context, roomID string, objs []*entity.Object) error {
+	return c.cat.Share(ctx, roomID, objs)
+}
+
 // func (c *Cat) set(roomID string, objects []*entity.Object) error {
 // 	c.mux.Lock()
 // 	defer c.mux.Unlock()

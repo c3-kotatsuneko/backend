@@ -257,7 +257,7 @@ func (s *MsgSender) incrimentTime(ctx context.Context, roomID string) {
 	s.rooms[roomID] = room
 }
 
-func (s *MsgSender) StartTimer(ctx context.Context, roomID string) {
+func (s *MsgSender) StartTimer(ctx context.Context, doneCh <-chan struct{}, roomID string) {
 	ticker := time.NewTicker(time.Duration(constants.IntervalTicker) * time.Second)
 	defer ticker.Stop()
 
@@ -272,6 +272,8 @@ func (s *MsgSender) StartTimer(ctx context.Context, roomID string) {
 	for {
 		select {
 		case <-ctx.Done():
+			return
+		case <-doneCh:
 			return
 		case <-ticker.C:
 			p, err := s.GetPlayersInRoom(roomID)
